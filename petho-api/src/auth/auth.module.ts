@@ -11,8 +11,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     UsersModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'petho_super_secret_key_2026',
-      signOptions: { expiresIn: '8h' }, // El login expira en 8 horas
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '8h' },
     }),
   ],
   controllers: [AuthController],

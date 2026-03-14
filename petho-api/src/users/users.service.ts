@@ -19,19 +19,30 @@ export class UsersService implements OnModuleInit {
 
   async seedAdmin() {
     const adminCount = await this.usersRepository.count({ where: { role: UserRole.ADMIN } });
+  
     if (adminCount === 0) {
-      console.log('No admin found, creating default admin (admin@petho.com / admin123)...');
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const email = process.env.ADMIN_EMAIL;
+      const username = process.env.ADMIN_USERNAME;
+      const password = process.env.ADMIN_PASSWORD;
+  
+      if (!email || !username || !password) {
+        throw new Error('ADMIN_EMAIL, ADMIN_USERNAME y ADMIN_PASSWORD son requeridos en el .env');
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
       const admin = this.usersRepository.create({
-        email: 'admin@petho.com',
-        username: 'admin',
+        email,
+        username,
         password: hashedPassword,
         role: UserRole.ADMIN,
         is_active: true,
       });
+  
       await this.usersRepository.save(admin);
     }
   }
+  
 
   async create(createUserDto: CreateUserDto): Promise<Partial<User>> {
     const existingEmail = await this.usersRepository.findOne({ where: { email: createUserDto.email } });
