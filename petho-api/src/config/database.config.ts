@@ -8,5 +8,5 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'pethoV8',
   autoLoadEntities: true,
-  synchronize: true, // Solo para desarrollo — desactivar en producción
+  synchronize: false, // Solo para desarrollo — desactivar en producción
 });
