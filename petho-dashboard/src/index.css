@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Row highlights */
+.row-entregado {
+  background: rgba(82, 196, 26, 0.04);
+}
+
+.row-devolucion {
+  background: rgba(255, 77, 79, 0.04);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Ant Design overrides for dark sidebar */
+.ant-layout-sider .ant-menu-item-selected {
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+.ant-layout-sider .ant-menu-item:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+}

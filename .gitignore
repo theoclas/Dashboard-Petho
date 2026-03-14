@@ -1,0 +1,11 @@
+node_modules/
+.env
+dist/
+build/
+*.log
+.vscode/
+.idea/
+*.txt
+import_test.js
+read_columns.js
+validate_db.js
