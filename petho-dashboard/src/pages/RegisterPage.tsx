@@ -1,24 +1,30 @@
 import { useState } from 'react';
 import { Card, Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
-import api from '../api';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Title, Text } = Typography;
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: { username: string; email: string; password: string }) => {
     setLoading(true);
     try {
-      await api.post('/auth/register', values);
+      await register(values.email.trim(), values.password, values.username.trim());
       message.success('Registro exitoso. Tu cuenta está pendiente de activación por un administrador.', 5);
       setTimeout(() => {
         window.location.href = '/login';
-      }, 5000);
+      }, 3000);
     } catch (err: any) {
-      if (err.response?.status === 409) {
-        message.error('El correo ingresado ya está registrado');
+      const code = err?.code || err?.response?.data?.message || '';
+      if (code.includes('auth/email-already-in-use')) {
+        message.error('El correo ya está registrado');
+      } else if (err.response?.status === 409) {
+        message.error(err.response.data.message || 'El correo o usuario ya están registrados');
+      } else if (code.includes('auth/weak-password')) {
+        message.error('La contraseña debe tener al menos 6 caracteres');
       } else {
         message.error('Error al registrar usuario');
       }

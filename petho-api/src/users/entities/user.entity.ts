@@ -17,8 +17,11 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password: string | null;
+
+  @Column({ name: 'firebase_uid', unique: true, nullable: true })
+  firebase_uid: string;
 
   @Column({
     type: 'enum',

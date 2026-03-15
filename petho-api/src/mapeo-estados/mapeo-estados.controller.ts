@@ -12,13 +12,13 @@ import {
 import { MapeoEstadosService } from './mapeo-estados.service';
 import { CreateMapeoEstadoDto } from './dto/create-mapeo-estado.dto';
 import { UpdateMapeoEstadoDto } from './dto/update-mapeo-estado.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('mapeo-estados')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FirebaseAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN) // Todo el controlador solo para ADMIN
 export class MapeoEstadosController {
   constructor(private readonly mapeoEstadosService: MapeoEstadosService) {}

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Card, Form, Input, Button, Typography, message } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../api';
 import Logo1 from '../assets/Logo1.png';
 
 const { Title, Text } = Typography;
@@ -11,21 +10,22 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
-      const payload = { ...values, username: values.username?.trim() };
-      const { data } = await api.post('/auth/login', payload);
-      login(data.access_token, data.user);
+      await login(values.email.trim(), values.password);
       window.location.href = '/';
     } catch (err: any) {
       console.error('Login error:', err);
-      if (err.response?.status === 401) {
-        message.error(err.response.data.message || 'Credenciales incorrectas o usuario inactivo');
-      } else if (err.response?.status === 400) {
-        message.error('Datos incompletos o inválidos');
+      const code = err?.code || err?.message || '';
+      if (code.includes('auth/invalid-credential') || code.includes('auth/wrong-password')) {
+        message.error('Correo o contraseña incorrectos');
+      } else if (code.includes('auth/user-disabled')) {
+        message.error('Cuenta deshabilitada. Contacta al administrador.');
+      } else if (code.includes('auth/invalid-email')) {
+        message.error('Correo electrónico inválido');
       } else {
-        message.error('Error de conexión al iniciar sesión');
+        message.error('Error al iniciar sesión. Verifica tu conexión.');
       }
     }
     setLoading(false);
@@ -40,7 +40,7 @@ export default function LoginPage() {
       backgroundImage: `url(${Logo1})`,
       backgroundColor: '#0f0f23',
       backgroundPosition: 'center center',
-      backgroundSize: '160%', // Este valor ajusta qué tan cerca se ve
+      backgroundSize: '160%',
       backgroundRepeat: 'no-repeat',
     }}>
       <div style={{
@@ -49,29 +49,29 @@ export default function LoginPage() {
         background: 'rgba(15, 15, 35, 0.85)',
         zIndex: 0
       }} />
-      <Card 
-        style={{ 
-          width: 400, 
-          background: 'rgba(20, 20, 40, 0.15)', 
+      <Card
+        style={{
+          width: 400,
+          background: 'rgba(20, 20, 40, 0.15)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)', 
+          border: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          zIndex: 1 
+          zIndex: 1
         }}
         styles={{ body: { padding: '32px' } }}
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Title level={2} style={{ color: '#6366f1', margin: 0 }}>PETHO</Title>
-          <Text type="secondary">Inicia sesión en tu cuenta</Text>
+          <Text type="secondary">Inicia sesión con tu correo</Text>
         </div>
 
         <Form name="login" onFinish={onFinish} layout="vertical">
           <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Ingresa tu usuario' }]}
+            name="email"
+            rules={[{ required: true, message: 'Ingresa tu correo' }, { type: 'email', message: 'Correo inválido' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Nombre de usuario" size="large" />
+            <Input prefix={<MailOutlined />} placeholder="Correo electrónico" size="large" />
           </Form.Item>
 
           <Form.Item

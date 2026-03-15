@@ -1,9 +1,9 @@
 import { Controller, Get, Param, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { CarteraService } from './cartera.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 
 @Controller('cartera')
-@UseGuards(JwtAuthGuard)
+@UseGuards(FirebaseAuthGuard)
 export class CarteraController {
   constructor(private readonly carteraService: CarteraService) {}
 
