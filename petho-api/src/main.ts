@@ -16,9 +16,13 @@ async function bootstrap() {
   }
   const app = await NestFactory.create(AppModule);
 
-  // Habilitar CORS para el frontend futuro
+  // CORS: admite uno o varios orígenes separados por coma
+  const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: corsOrigins.length > 1 ? corsOrigins : corsOrigins[0] || 'http://localhost:5173',
     credentials: true,
   });
   

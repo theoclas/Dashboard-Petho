@@ -8,6 +8,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'pethoV8',
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   entities: ['src/**/*.entity.ts'],
   migrations: ['src/migrations/*.ts'],
 });

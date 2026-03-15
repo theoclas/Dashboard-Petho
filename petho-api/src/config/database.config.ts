@@ -7,6 +7,7 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'pethoV8',
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   autoLoadEntities: true,
   synchronize: process.env.NODE_ENV !== 'production',
   migrations: ['dist/migrations/*.js'],
