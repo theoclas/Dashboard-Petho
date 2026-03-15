@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Table, Input, Tag, Button, Space, Typography,
-  Tooltip, message, InputNumber,
+  Tooltip, message, InputNumber, DatePicker,
 } from 'antd';
 import {
   SearchOutlined, ReloadOutlined,
@@ -74,18 +74,21 @@ export default function PedidosPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [limit] = useState(25);
+  const [limit, setLimit] = useState(25);
   const [filters, setFilters] = useState({
     estado_unificado: '',
     transportadora: '',
     ciudad: '',
     id_dropi: '',
+    startDate: '',
+    endDate: '',
   });
   const [sortField, setSortField] = useState<string>('id');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<Pedido>>({});
   const [expandedProducts, setExpandedProducts] = useState<Record<string, ProductoDetalle[]>>({});
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -95,9 +98,12 @@ export default function PedidosPage() {
       if (filters.transportadora) params.transportadora = filters.transportadora;
       if (filters.ciudad) params.ciudad = filters.ciudad;
       if (filters.id_dropi) params.id_dropi = filters.id_dropi;
+      if (filters.startDate) params.startDate = filters.startDate;
+      if (filters.endDate) params.endDate = filters.endDate;
       const result = await getPedidos(params);
       setData(result.data);
       setTotal(result.total);
+      setSelectedRowKeys([]); // Limpiar selección al recargar datos
     } catch {
       message.error('Error cargando pedidos');
     }
@@ -243,45 +249,10 @@ export default function PedidosPage() {
       render: (_, r) => renderEditable('cliente', r),
     },
     {
-      title: 'Transportadora',
-      dataIndex: 'transportadora',
-      width: 140,
-      sorter: true,
-      ...getColumnSearchProps('Transportadora'),
-    },
-    {
-      title: 'Estado Dropi',
-      dataIndex: 'estatus_original',
-      width: 140,
-      render: (v: string) => <Text type="secondary">{v || '-'}</Text>,
-    },
-    {
-      title: 'Últ. Mov. Dropi',
-      dataIndex: 'ultimo_mov',
-      width: 150,
-      ellipsis: { showTitle: false },
-      render: (v: string) => (
-        <Tooltip title={v}>
-          <Text type="secondary">{v || '-'}</Text>
-        </Tooltip>
-      ),
-    },
-    {
-      title: 'Estado Asignado',
-      dataIndex: 'estado_unificado',
-      width: 150,
-      ...getColumnSearchProps('Estado'),
-      render: (v: string) => (
-        <Tag color={estadoColors[v] || 'default'}>{v || '-'}</Tag>
-      ),
-    },
-    {
-      title: 'Operativo',
-      dataIndex: 'estado_operativo',
-      width: 130,
-      render: (v: string) => (
-        <Tag color={estadoColors[v] || 'default'}>{v || '-'}</Tag>
-      ),
+      title: 'Teléfono',
+      dataIndex: 'telefono',
+      width: 120,
+      render: (_, r) => renderEditable('telefono', r),
     },
     {
       title: 'Ciudad',
@@ -291,9 +262,48 @@ export default function PedidosPage() {
       ...getColumnSearchProps('Ciudad'),
     },
     {
+      title: 'Mis Notas',
+      dataIndex: 'notas_manuales',
+      width: 200,
+      ellipsis: { showTitle: false },
+      render: (v: string, r: Pedido) => {
+        if (editingId === r.id && user?.role !== 'LECTOR') {
+          return (
+            <Input.TextArea
+              size="small"
+              value={editData.notas_manuales as string}
+              onChange={(e) => setEditData({ ...editData, notas_manuales: e.target.value })}
+              rows={2}
+              placeholder="Escribe tus notas aquí..."
+            />
+          );
+        }
+        return (
+          <Tooltip title={v}>
+            <span>{v || '-'}</span>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      title: 'Transportadora',
+      dataIndex: 'transportadora',
+      width: 140,
+      sorter: true,
+      ...getColumnSearchProps('Transportadora'),
+    },
+    {
       title: 'Guía',
       dataIndex: 'guia',
       width: 140,
+    },
+    {
+      title: 'Operativo',
+      dataIndex: 'estado_operativo',
+      width: 130,
+      render: (v: string) => (
+        <Tag color={estadoColors[v] || 'default'}>{v || '-'}</Tag>
+      ),
     },
     {
       title: 'Venta',
@@ -377,28 +387,30 @@ export default function PedidosPage() {
       },
     },
     {
-      title: 'Mis Notas',
-      dataIndex: 'notas_manuales',
-      width: 200,
+      title: 'Estado Dropi',
+      dataIndex: 'estatus_original',
+      width: 140,
+      render: (v: string) => <Text type="secondary">{v || '-'}</Text>,
+    },
+    {
+      title: 'Últ. Mov. Dropi',
+      dataIndex: 'ultimo_mov',
+      width: 150,
       ellipsis: { showTitle: false },
-      render: (v: string, r: Pedido) => {
-        if (editingId === r.id && user?.role !== 'LECTOR') {
-          return (
-            <Input.TextArea
-              size="small"
-              value={editData.notas_manuales as string}
-              onChange={(e) => setEditData({ ...editData, notas_manuales: e.target.value })}
-              rows={2}
-              placeholder="Escribe tus notas aquí..."
-            />
-          );
-        }
-        return (
-          <Tooltip title={v}>
-            <span>{v || '-'}</span>
-          </Tooltip>
-        );
-      },
+      render: (v: string) => (
+        <Tooltip title={v}>
+          <Text type="secondary">{v || '-'}</Text>
+        </Tooltip>
+      ),
+    },
+    {
+      title: 'Estado Asignado',
+      dataIndex: 'estado_unificado',
+      width: 150,
+      ...getColumnSearchProps('Estado'),
+      render: (v: string) => (
+        <Tag color={estadoColors[v] || 'default'}>{v || '-'}</Tag>
+      ),
     },
     {
       title: 'Acciones',
@@ -420,11 +432,40 @@ export default function PedidosPage() {
     },
   ];
 
+  const selectedRows = data.filter((r) => selectedRowKeys.includes(r.id));
+  const sumVenta = selectedRows.reduce((s, r) => s + Number(r.venta || 0), 0);
+  const sumGanancia = selectedRows.reduce((s, r) => s + Number(r.ganancia_calc || 0), 0);
+  const sumFlete = selectedRows.reduce((s, r) => s + Number(r.flete || 0), 0);
+  const sumCartera = selectedRows.reduce((s, r) => s + Number(r.cartera || 0), 0);
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={3} style={{ margin: 0 }}>📋 Pedidos</Title>
-        <Space>
+        <Space wrap>
+          <DatePicker.RangePicker
+            placeholder={['Desde', 'Hasta']}
+            format="DD/MM/YYYY"
+            value={
+              filters.startDate && filters.endDate
+                ? [dayjs(filters.startDate), dayjs(filters.endDate)]
+                : null
+            }
+            onChange={(dates) => {
+              const d0 = dates?.[0];
+              const d1 = dates?.[1];
+              if (!d0 || !d1) {
+                setFilters((f) => ({ ...f, startDate: '', endDate: '' }));
+              } else {
+                setFilters((f) => ({
+                  ...f,
+                  startDate: d0.format('YYYY-MM-DD'),
+                  endDate: d1.format('YYYY-MM-DD'),
+                }));
+              }
+              setPage(1);
+            }}
+          />
           {user?.role !== 'LECTOR' && (
             <Button 
               type="primary"
@@ -457,16 +498,54 @@ export default function PedidosPage() {
         loading={loading}
         size="small"
         scroll={{ x: 2000 }}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+        }}
+        summary={() =>
+          selectedRowKeys.length > 0 ? (
+            <Table.Summary fixed>
+              <Table.Summary.Row>
+                <Table.Summary.Cell index={0} colSpan={9}>
+                  <Text strong>
+                    Total ({selectedRowKeys.length} fila{selectedRowKeys.length !== 1 ? 's' : ''} seleccionada
+                    {selectedRowKeys.length !== 1 ? 's' : ''})
+                  </Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={9} align="right">
+                  <Text strong>${sumVenta.toLocaleString()}</Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={10} align="right">
+                  <Text strong type={sumGanancia >= 0 ? 'success' : 'danger'}>
+                    ${sumGanancia.toLocaleString()}
+                  </Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={11} align="right">
+                  <Text strong>${sumFlete.toLocaleString()}</Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={12} align="right">
+                  <Text strong type={sumCartera >= 0 ? 'success' : 'danger'}>
+                    ${sumCartera.toLocaleString()}
+                  </Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={13} colSpan={7} />
+              </Table.Summary.Row>
+            </Table.Summary>
+          ) : null
+        }
         pagination={{
           current: page,
           pageSize: limit,
           total,
-          showSizeChanger: false,
+          showSizeChanger: true,
+          pageSizeOptions: [25, 50, 100, 200, 800],
           showTotal: (t) => `Total: ${t.toLocaleString()}`,
         }}
         onChange={(pagination, tableFilters: any, sorter: any, extra) => {
           if (extra.action === 'paginate') {
             setPage(pagination.current || 1);
+            setLimit(pagination.pageSize || 25);
+            setSelectedRowKeys([]); // Limpiar selección al cambiar página
           } else {
             setPage(1); // Mover a primera página al filtrar u ordenar
             
@@ -478,12 +557,14 @@ export default function PedidosPage() {
               setSortOrder('DESC');
             }
 
-            setFilters({
+            setFilters((prev) => ({
+              ...prev,
               id_dropi: tableFilters.id_dropi?.[0] || '',
               estado_unificado: tableFilters.estado_unificado?.[0] || '',
               transportadora: tableFilters.transportadora?.[0] || '',
               ciudad: tableFilters.ciudad?.[0] || '',
-            });
+            }));
+            setSelectedRowKeys([]); // Limpiar selección al filtrar u ordenar
           }
         }}
         expandable={{

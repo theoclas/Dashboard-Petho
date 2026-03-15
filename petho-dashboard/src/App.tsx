@@ -26,8 +26,15 @@ import LogoSinFondoCortada from './assets/Logo sin fondo cortada.png';
 const { Header, Sider, Content } = Layout;
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { token, user } = useAuth();
-  
+  const { token, user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div>Cargando...</div>
+      </div>
+    );
+  }
   if (!token || !user) {
     return <Navigate to="/login" replace />;
   }

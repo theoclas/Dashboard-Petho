@@ -4,9 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  if (!process.env.JWT_SECRET) {
+  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
     throw new Error(
-      'JWT_SECRET is required. Add it to your .env file. Generate with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"',
+      'Firebase requerido: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL y FIREBASE_PRIVATE_KEY en .env',
     );
   }
   const app = await NestFactory.create(AppModule);

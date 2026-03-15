@@ -1,5 +1,14 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  type User as FirebaseUser,
+} from 'firebase/auth';
+import { auth } from '../firebase';
+import api from '../api';
 
 export interface User {
   id: number;
@@ -11,36 +20,76 @@ export interface User {
 interface AuthContextData {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
+  firebaseUser: FirebaseUser | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, username: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('petho_user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('petho_token'));
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('petho_token', newToken);
-    localStorage.setItem('petho_user', JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
+  const fetchBackendUser = async (idToken: string): Promise<User> => {
+    const { data } = await api.post<{ user: User }>('/auth/firebase', { idToken });
+    return data.user;
   };
 
-  const logout = () => {
-    localStorage.removeItem('petho_token');
-    localStorage.removeItem('petho_user');
-    setToken(null);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setFirebaseUser(fbUser);
+      if (!fbUser) {
+        setUser(null);
+        setToken(null);
+        setLoading(false);
+        return;
+      }
+      try {
+        const idToken = await fbUser.getIdToken();
+        setToken(idToken);
+        const backendUser = await fetchBackendUser(idToken);
+        setUser(backendUser);
+      } catch {
+        setUser(null);
+        setToken(null);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+    const fbUser = auth.currentUser;
+    if (!fbUser) return;
+    const idToken = await fbUser.getIdToken();
+    const backendUser = await fetchBackendUser(idToken);
+    setToken(idToken);
+    setUser(backendUser);
+    setFirebaseUser(fbUser);
+  };
+
+  const register = async (email: string, password: string, username: string) => {
+    const { user: fbUser } = await createUserWithEmailAndPassword(auth, email, password);
+    const idToken = await fbUser.getIdToken();
+    await api.post('/auth/firebase/register', { idToken, username });
+  };
+
+  const logout = async () => {
+    await firebaseSignOut(auth);
     setUser(null);
+    setToken(null);
+    setFirebaseUser(null);
     window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, firebaseUser, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

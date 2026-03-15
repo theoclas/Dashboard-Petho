@@ -95,6 +95,60 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.findOne({ where: { username } });
   }
 
+  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { firebase_uid: firebaseUid } });
+  }
+
+  async findOrCreateFromFirebase(
+    firebaseUid: string,
+    email: string,
+    username?: string,
+  ): Promise<Partial<User>> {
+    let user = await this.findByFirebaseUid(firebaseUid);
+    if (user) {
+      if (!user.is_active) {
+        throw new Error('Cuenta inactiva. Contacte al administrador.');
+      }
+      const { password, ...result } = user;
+      return result;
+    }
+    user = await this.findByEmail(email);
+    if (user) {
+      user.firebase_uid = firebaseUid;
+      await this.usersRepository.save(user);
+      if (!user.is_active) {
+        throw new Error('Cuenta inactiva. Contacte al administrador.');
+      }
+      const { password, ...result } = user;
+      return result;
+    }
+    throw new Error('Usuario no registrado. Regístrate primero.');
+  }
+
+  async createFromFirebase(firebaseUid: string, email: string, username: string): Promise<Partial<User>> {
+    const existingByEmail = await this.findByEmail(email);
+    if (existingByEmail) {
+      existingByEmail.firebase_uid = firebaseUid;
+      await this.usersRepository.save(existingByEmail);
+      const { password, ...result } = existingByEmail;
+      return result;
+    }
+    const existingUsername = await this.findByUsername(username);
+    if (existingUsername) {
+      throw new ConflictException('El usuario ya está registrado. Usa otro nombre.');
+    }
+    const user = this.usersRepository.create({
+      email,
+      username,
+      firebase_uid: firebaseUid,
+      is_active: false,
+      role: UserRole.LECTOR,
+    });
+    const saved = await this.usersRepository.save(user);
+    const { password, ...result } = saved;
+    return result as Partial<User>;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto): Promise<Partial<User>> {
     const user = await this.findOne(id);
     Object.assign(user, updateUserDto);

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { auth } from './firebase';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -7,9 +8,10 @@ const api = axios.create({
   timeout: 120000,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('petho_token');
-  if (token) {
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+  if (user) {
+    const token = await user.getIdToken();
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -19,8 +21,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('petho_token');
-      localStorage.removeItem('petho_user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

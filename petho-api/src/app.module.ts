@@ -11,11 +11,13 @@ import { ImportModule } from './import/import.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { CpaModule } from './cpa/cpa.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(getDatabaseConfig()),
+    FirebaseModule,
     PedidosModule,
     CarteraModule,
     MapeoEstadosModule,

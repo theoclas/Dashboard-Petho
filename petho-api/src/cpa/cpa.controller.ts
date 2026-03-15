@@ -12,13 +12,13 @@ import {
 import { CpaService } from './cpa.service';
 import { CreateCpaDto } from './dto/create-cpa.dto';
 import { UpdateCpaDto } from './dto/update-cpa.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('cpa')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FirebaseAuthGuard, RolesGuard)
 export class CpaController {
   constructor(private readonly cpaService: CpaService) {}
 

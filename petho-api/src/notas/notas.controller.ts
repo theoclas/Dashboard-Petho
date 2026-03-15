@@ -12,13 +12,13 @@ import {
 } from '@nestjs/common';
 import { NotasService } from './notas.service';
 import { NotaManual } from './entities/nota-manual.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('notas')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FirebaseAuthGuard, RolesGuard)
 export class NotasController {
   constructor(private readonly notasService: NotasService) {}
 

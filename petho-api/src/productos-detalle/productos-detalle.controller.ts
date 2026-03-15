@@ -1,9 +1,9 @@
 import { Controller, Get, Query, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ProductosDetalleService } from './productos-detalle.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 
 @Controller('productos-detalle')
-@UseGuards(JwtAuthGuard)
+@UseGuards(FirebaseAuthGuard)
 export class ProductosDetalleController {
   constructor(
     private readonly productosDetalleService: ProductosDetalleService,

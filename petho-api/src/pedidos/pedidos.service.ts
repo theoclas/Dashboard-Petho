@@ -48,6 +48,8 @@ export class PedidosService {
     transportadora?: string;
     ciudad?: string;
     id_dropi?: string;
+    startDate?: string;
+    endDate?: string;
     page?: number;
     limit?: number;
     sortField?: string;
@@ -80,6 +82,21 @@ export class PedidosService {
     if (query?.ciudad) {
       qb.andWhere('pedido.ciudad ILIKE :ciudad', {
         ciudad: `%${query.ciudad}%`,
+      });
+    }
+
+    if (query?.startDate && query?.endDate) {
+      qb.andWhere('pedido.fecha BETWEEN :startDate AND :endDate', {
+        startDate: new Date(query.startDate + 'T00:00:00'),
+        endDate: new Date(query.endDate + 'T23:59:59'),
+      });
+    } else if (query?.startDate) {
+      qb.andWhere('pedido.fecha >= :startDate', {
+        startDate: new Date(query.startDate + 'T00:00:00'),
+      });
+    } else if (query?.endDate) {
+      qb.andWhere('pedido.fecha <= :endDate', {
+        endDate: new Date(query.endDate + 'T23:59:59'),
       });
     }
 
