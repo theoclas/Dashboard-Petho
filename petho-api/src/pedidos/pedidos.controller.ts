@@ -39,6 +39,8 @@ export class PedidosController {
     @Query('limit') limit?: string,
     @Query('sortField') sortField?: string,
     @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.pedidosService.findAll({
       estado_unificado: estadoUnificado,
@@ -49,6 +51,8 @@ export class PedidosController {
       limit: limit ? parseInt(limit, 10) : undefined,
       sortField,
       sortOrder,
+      startDate,
+      endDate,
     });
   }
 

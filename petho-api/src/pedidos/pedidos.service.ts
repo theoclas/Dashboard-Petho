@@ -52,12 +52,21 @@ export class PedidosService {
     limit?: number;
     sortField?: string;
     sortOrder?: 'ASC' | 'DESC';
+    startDate?: string;
+    endDate?: string;
   }): Promise<{ data: Pedido[]; total: number; page: number; limit: number }> {
     const page = query?.page || 1;
     const limit = query?.limit || 50;
     const skip = (page - 1) * limit;
 
     const qb = this.pedidoRepository.createQueryBuilder('pedido');
+
+    if (query?.startDate && query?.endDate) {
+      qb.andWhere('pedido.fecha BETWEEN :startDate AND :endDate', {
+        startDate: new Date(query.startDate),
+        endDate: new Date(query.endDate),
+      });
+    }
 
     if (query?.estado_unificado) {
       qb.andWhere('pedido.estado_unificado ILIKE :estado', {
