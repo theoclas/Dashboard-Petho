@@ -1,5 +1,7 @@
 node_modules/
 .env
+firebase-credentials.json
+**/firebase-credentials.json
 dist/
 build/
 *.log

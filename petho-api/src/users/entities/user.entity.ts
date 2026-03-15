@@ -17,11 +17,11 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   password: string | null;
 
-  @Column({ name: 'firebase_uid', unique: true, nullable: true })
-  firebase_uid: string;
+  @Column({ name: 'firebase_uid', type: 'varchar', unique: true, nullable: true })
+  firebase_uid: string | null;
 
   @Column({
     type: 'enum',

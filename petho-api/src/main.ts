@@ -3,10 +3,15 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
+function isFirebaseConfigured(): boolean {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) return true;
+  return !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY);
+}
+
 async function bootstrap() {
-  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+  if (!isFirebaseConfigured()) {
     throw new Error(
-      'Firebase requerido: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL y FIREBASE_PRIVATE_KEY en .env',
+      'Firebase requerido. Usa FIREBASE_SERVICE_ACCOUNT_PATH (ruta al .json) o FIREBASE_PROJECT_ID + FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY en .env',
     );
   }
   const app = await NestFactory.create(AppModule);
